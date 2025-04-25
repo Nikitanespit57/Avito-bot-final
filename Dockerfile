@@ -1,15 +1,15 @@
-# Указываем базовый образ Python
+# 1. Базовый образ с Python
 FROM python:3.10-slim
 
-# Рабочая директория внутри контейнера
+# 2. Рабочая директория
 WORKDIR /app
 
-# Копируем список зависимостей и устанавливаем их
+# 3. Сначала копируем только requirements, чтобы кэшировать pip install
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь код
+# 4. Копируем весь код
 COPY . .
 
-# Точка входа
+# 5. По умолчанию запускаем скрипт
 CMD ["python", "app.py"]
