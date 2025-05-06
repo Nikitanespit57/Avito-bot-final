@@ -1,12 +1,8 @@
-from flask import Flask
-import threading
 import time
 from datetime import datetime
 import pytz
 import requests
 import os
-
-app = Flask(__name__)
 
 CLIENT_ID = os.getenv("AVITO_CLIENT_ID")
 CLIENT_SECRET = os.getenv("AVITO_CLIENT_SECRET")
@@ -23,7 +19,9 @@ def get_access_token():
         }
     )
     if response.ok:
-        return response.json()["access_token"]
+        token = response.json().get("access_token")
+        print(f"Получен access_token: {token}")  # Выводим токен в консоль
+        return token
     else:
         print("Ошибка получения access_token:", response.text)
         return None
@@ -46,7 +44,10 @@ def check_and_respond():
             response = requests.get("https://api.avito.ru/messenger/v1/messages", headers=headers)
 
             if response.ok:
-                for message in response.json().get("messages", []):
+                messages = response.json().get("messages", [])
+                print(f"Получены сообщения: {messages}")  # Отладочная информация
+
+                for message in messages:
                     if not message.get("is_read"):
                         reply_data = {
                             "message": (
@@ -56,20 +57,16 @@ def check_and_respond():
                                 "Благодарим за понимание!"
                             )
                         }
-                        requests.post(
+                        reply_response = requests.post(
                             f"https://api.avito.ru/messenger/v1/messages/{message['id']}/reply",
                             headers=headers, json=reply_data
                         )
+                        print(f"Ответ отправлен, статус: {reply_response.status_code}")  # Статус отправки
+                        print(f"Ответ от API: {reply_response.text}")  # Ответ API
         else:
             print("Сейчас рабочее время. Бот спит.")
 
         time.sleep(60)
 
-@app.route('/')
-def health():
-    return 'Бот Avito работает!'
-
 if __name__ == "__main__":
-    t = threading.Thread(target=check_and_respond)
-    t.start()
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
+    check_and_respond()
