@@ -1,8 +1,12 @@
+from flask import Flask
+import threading
 import time
 from datetime import datetime
 import pytz
 import requests
 import os
+
+app = Flask(__name__)
 
 CLIENT_ID = os.getenv("AVITO_CLIENT_ID")
 CLIENT_SECRET = os.getenv("AVITO_CLIENT_SECRET")
@@ -61,5 +65,11 @@ def check_and_respond():
 
         time.sleep(60)
 
+@app.route('/')
+def health():
+    return 'Бот Avito работает!'
+
 if __name__ == "__main__":
-    check_and_respond()
+    t = threading.Thread(target=check_and_respond)
+    t.start()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
