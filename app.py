@@ -1,8 +1,12 @@
+from flask import Flask, jsonify
 import time
 from datetime import datetime
 import pytz
 import requests
 import os
+
+# Инициализация Flask
+app = Flask(__name__)
 
 CLIENT_ID = os.getenv("AVITO_CLIENT_ID")
 CLIENT_SECRET = os.getenv("AVITO_CLIENT_SECRET")
@@ -77,5 +81,21 @@ def check_and_respond():
 
         time.sleep(60)
 
+# Flask маршрут
+@app.route('/')
+def home():
+    return jsonify({"status": "bot is running"})
+
 if __name__ == "__main__":
-    check_and_respond()
+    # Запуск Flask сервера
+    from threading import Thread
+
+    def run_bot():
+        check_and_respond()
+
+    bot_thread = Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+
+    # Запуск Flask-приложения
+    app.run(host='0.0.0.0', port=10000)
